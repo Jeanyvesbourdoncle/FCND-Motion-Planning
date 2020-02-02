@@ -27,23 +27,23 @@ Design of the SW pipeline:
 - Waypoints in local ECEF coordinates ([N, E, altitude, heading] format). 
 
 -----------------------
-## Part 1 : Environment Installation
+### Part 1 : Environment Installation
 
-### Step 1: Download the Simulator
+#### Step 1: Download the Simulator
 Download the Motion-Planning simulator for this project that's appropriate for your operating system from the [simulator releases respository](https://github.com/udacity/FCND-Simulator-Releases/releases).
 
-### Step 2: Set up your Python Environment
+#### Step 2: Set up your Python Environment
 If you haven't already, set up your Python environment and get all the relevant packages installed using Anaconda following instructions in [this repository](https://github.com/udacity/FCND-Term1-Starter-Kit)
 
-### Step 3: Clone this Repository
+#### Step 3: Clone this Repository
 ```sh
 git clone https://github.com/udacity/FCND-Motion-Planning
 ```
 
-### Step 4: Inspect the relevant files
+#### Step 4: Inspect the relevant files
 The file `colliders.csv` contains the 2.5D map of the simulator environment. 
 
-### Step 5: Python environment + run the programm
+#### Step 5: Python environment + run the programm
 First start up the simulator, then at the command line:
  
 ```sh
@@ -52,11 +52,9 @@ python motion_planning_grid.py
 ```
 
 --------------------------------
-## Part 2.1 : SW architecture
+### Part 2.1 : SW architecture
 
-### Starter Code
-
-#####`planning_utils.py`
+##### `planning_utils_grid.py`
 The planning_utils.py delivers the python function useful for the motion planning :
 
 - Class Action : valid movement actions that can take the drone from the current position.
@@ -72,7 +70,7 @@ An action is represented by a 3 element tuple :
 - Prune_path : deletion of the unneeded waypoints. Use of the collinearity_check to know if the points are in the in a linear line.   
 - Plot_route : visualization of the start point, the goal point and the waypoints. The function is called before and after the prune activity.
 
-##### `motion_planning.py` 
+##### `motion_planning_grid.py` 
 The motion_planning.py is the implementation of the Motion Planning algorithm. The grid search and the A* algorithm will be used. 
 
 ###### Class
@@ -84,7 +82,7 @@ These two classes are already implemented in the last project FCND-Backyard-Flye
 ###### Finite State Machine Design
 The basic functions (transition and callback fonction) present in the finite State Machine (asynchronous graph) are in the picture below :
 <p align="center">
-<img src="./Design/Finite_State_Machine.png" width="80% style = "border:none;">
+<img src="./Design/Finite_State_Machine.png" width="100% style = "border:none;">
 </p> 
 
 The state named "PLANNING" has been added between the state "ARMING" and "TAKEOFF".
@@ -100,7 +98,7 @@ The SW Pipeline of the state "PLANNING" with his function Plan_Path is here docu
 6- Convert Path to waypoints
 
 <p align="center">
-<img src="./Design/Path_Plan.png" width="80% style = "border:none;">
+<img src="./Design/Path_Plan.png" width="100% style = "border:none;">
 </p> 
 
 
