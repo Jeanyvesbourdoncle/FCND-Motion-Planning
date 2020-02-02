@@ -1,6 +1,10 @@
 from enum import Enum
 from queue import PriorityQueue
+
+
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 def create_grid(data, drone_altitude, safety_distance):
@@ -37,11 +41,16 @@ def create_grid(data, drone_altitude, safety_distance):
                 int(np.clip(east + d_east + safety_distance - east_min, 0, east_size-1)),
             ]
             grid[obstacle[0]:obstacle[1]+1, obstacle[2]:obstacle[3]+1] = 1
-
+    
     return grid, int(north_min), int(east_min)
 
+#----------------------------------------------------------------------
+#Class Action : valid movement actions that can take the drone from the current position.
+#An action is represented by a 3 element tuple :
+#	- the two first values are the delta of the action relative to the current grid position (N/E/S/W). 
+#	- the third value is the cost of performing the action.
 
-# Assume all actions cost the same.
+
 class Action(Enum):
     """
     An action is represented by a 3 element tuple.
@@ -50,11 +59,15 @@ class Action(Enum):
     to the current grid position. The third and final value
     is the cost of performing the action.
     """
-
-    WEST = (0, -1, 1)
-    EAST = (0, 1, 1)
-    NORTH = (-1, 0, 1)
-    SOUTH = (1, 0, 1)
+	# add diagonal motions with a cost of sqrt(2) to your A* implementation
+    WEST = (0,-1,1)
+    EAST = (0,1, 1)
+    NORTH = (-1,0,1)
+    SOUTH = (1,0,1)
+    NORTH_WEST = (-1,-1,np.sqrt(2))
+    NORTH_EAST = (-1,1,np.sqrt(2))
+    SOUTH_WEST = (1,-1,np.sqrt(2))
+    SOUTH_EAST = (1,1,np.sqrt(2))
 
     @property
     def cost(self):
@@ -63,8 +76,9 @@ class Action(Enum):
     @property
     def delta(self):
         return (self.value[0], self.value[1])
-
-
+        
+#----------------------------------------------------------------------
+# Valid_actions : deliver the list of valid actions given a grid and current node.
 def valid_actions(grid, current_node):
     """
     Returns a list of valid actions given a grid and current node.
@@ -85,9 +99,22 @@ def valid_actions(grid, current_node):
     if y + 1 > m or grid[x, y + 1] == 1:
         valid_actions.remove(Action.EAST)
 
+    if (x-1<0 or y-1<0) or grid[x-1, y-1] == 1:
+        valid_actions.remove(Action.NORTH_WEST)
+    
+    if (x-1<0 or y+1>m) or grid[x-1, y+1] == 1:
+        valid_actions.remove(Action.NORTH_EAST) 
+        
+    if (x+1>n or y-1<0) or grid[x+1, y-1] == 1:
+        valid_actions.remove(Action.SOUTH_WEST)
+        
+    if (x+1>n or y+1>m) or grid[x+1, y+1] == 1:
+        valid_actions.remove(Action.SOUTH_EAST)    
+                
     return valid_actions
 
-
+#---------------------------------------------------------------------
+# A_star : Algorithm, which calculate the path from the start point to the goal point.
 def a_star(grid, h, start, goal):
 
     path = []
@@ -140,7 +167,62 @@ def a_star(grid, h, start, goal):
     return path[::-1], path_cost
 
 
-
+#-------------------------------------------------------------------
+#Heuristic : calculation of the euclidean distance (and the Manhattan distance) between a start point and a goal point.
 def heuristic(position, goal_position):
-    return np.linalg.norm(np.array(position) - np.array(goal_position))
+    # Euclidean approach 
+    h = np.sqrt((position[0] - goal_position[0])**2 + (position[1] - goal_position[1])**2) 
+    # Mannhattan approach
+    #h = np.linalg.norm(np.array(position) - np.array(goal_position))
+    return h
 
+
+#---------------------------------------------------------------------
+
+#Point : 3D point implementation in a array.
+def point(p):
+    return np.array([p[0], p[1], 1.]).reshape(1, -1)
+
+
+#Collinearity check : determinant calculation of a matrix containing the points. 
+# If the determinant is less that the epsilon threshold, then the points are collinear.
+def collinearity_check(p1, p2, p3, epsilon=1e-3):   
+    m = np.concatenate((p1, p2, p3), 0)
+    det = np.linalg.det(m)
+    return abs(det) < epsilon
+
+# Prune_path : deletion of the unneeded waypoints. 
+# Use of the collinearity_check to know if the points are in the in a linear line.
+def prune_path(path):
+        pruned_path = [p for p in path]
+        i=0
+        while i < len(pruned_path) - 2:
+            p1 = point (pruned_path [i])
+            p2 = point (pruned_path [i+1])
+            p3 = point (pruned_path [i+2])
+            if collinearity_check (p1,p2,p3) == True:
+                pruned_path.remove (pruned_path[i+1])
+            else:
+                i=i+1
+                
+        return pruned_path
+
+#--------------------------------------------------------------
+#Plot_route : visualization of the start point, the goal point and the waypoints. 
+#The function will be  called before and after the prune activity.
+
+def plot_route (grid, start_ne, goal_ne,pruned_path):
+
+    plt.imshow(grid, cmap='Greys', origin='lower')
+    
+    plt.plot(start_ne[1], start_ne[0], 'x')
+    plt.plot(goal_ne[1], goal_ne[0], 'x')
+
+    pp = np.array(pruned_path)
+    plt.plot(pp[:, 1], pp[:, 0], 'g')
+    plt.scatter(pp[:, 1], pp[:, 0])
+
+    plt.xlabel('EAST')
+    plt.ylabel('NORTH')
+
+    plt.show()

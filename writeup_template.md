@@ -1,82 +1,134 @@
-## Project: 3D Motion Planning
-![Quad Image](./misc/enroute.png)
+## 3D Motion Planning (Grid)
+---------------------
+#### Results visualization with the simulator [here](https://github.com/Jeanyvesbourdoncle/FCND-Motion-Planning/blob/master/Results/2020-02-02_19-41-16.mp4).
+![Here it is](./Results/2020-02-02_19-43-20.gif)
 
----
+---------------------
+### Target
+The target of this project is to plan a path through an urban environment between a start and a goal location using the A* algorithm. 
+
+A finite state machine using event-driven programming will be used for autonomously flying a drone. 
+ 
+The communication with the drone is done using MAVLink.
+
+----------------------
+### Detailed Requirements
+
+Autonomous control will be done using an event-driven state machine. 
+Each callback function checks against transition criteria dependent on the current state. If the transition criteria are met, it will transition to the next state and pass along any required commands to the drone.
+
+Design of the SW pipeline:
+
+- 2.5D map download in the `colliders.csv` file describing the environment.
+- Environment discretization into a grid representation.
+- Start and goal locations definition. 
+- Perform a search using A* algorithm.
+- Perform the collinearity test to remove unnecessary waypoints.
+- Waypoints in local ECEF coordinates ([N, E, altitude, heading] format). 
+
+-----------------------
+## Part 1 : Environment Installation
+
+### Step 1: Download the Simulator
+Download the Motion-Planning simulator for this project that's appropriate for your operating system from the [simulator releases respository](https://github.com/udacity/FCND-Simulator-Releases/releases).
+
+### Step 2: Set up your Python Environment
+If you haven't already, set up your Python environment and get all the relevant packages installed using Anaconda following instructions in [this repository](https://github.com/udacity/FCND-Term1-Starter-Kit)
+
+### Step 3: Clone this Repository
+```sh
+git clone https://github.com/udacity/FCND-Motion-Planning
+```
+
+### Step 4: Inspect the relevant files
+The file `colliders.csv` contains the 2.5D map of the simulator environment. 
+
+### Step 5: Python environment + run the programm
+First start up the simulator, then at the command line:
+ 
+```sh
+source activate fcnd # if you haven't already sourced your Python environment, do so now.
+python motion_planning_grid.py
+```
+
+--------------------------------
+### Part 2.1 : SW architecture
+
+#### Starter Code
+
+#####`planning_utils.py`
+The planning_utils.py delivers the python function useful for the motion planning :
+
+- Class Action : valid movement actions that can take the drone from the current position.
+An action is represented by a 3 element tuple :
+	- the two first values are the delta of the action relative to the current grid position (N/E/S/W). 
+	- the third value is the cost of performing the action.
+- Valid_actions : deliver the list of valid actions given a grid and current node.
+- A_star : Algorithm, which calculate the path from the start point to the goal point.
+- Heuristic : calculation of the euclidean distance (and the Manhattan distance) between a start point and a goal point.
+- Create_grid : 2D configuration space based on given obstacle data, drone altitude and safety distance arguments.
+- Point : 3D point implementation in a array.
+- Collinearity check : determinant calculation of a matrix containing the points. If the determinant is less that the epsilon threshold, then the points are collinear.
+- Prune_path : deletion of the unneeded waypoints. Use of the collinearity_check to know if the points are in the in a linear line.   
+- Plot_route : visualization of the start point, the goal point and the waypoints. The function is called before and after the prune activity.
+
+##### `motion_planning.py` 
+The motion_planning.py is the implementation of the Motion Planning algorithm. The grid search and the A* algorithm will be used. 
+
+###### Class
+These two classes are already implemented in the last project FCND-Backyard-Flyer, with a simple rectangular route without obstacle.  
+- States Class : Flight states implemented in the finite State Machine  
+- MotionPlanning Class : Main class of the programm. The code is implemented in this function.
 
 
-# Required Steps for a Passing Submission:
-1. Load the 2.5D map in the colliders.csv file describing the environment.
-2. Discretize the environment into a grid or graph representation.
-3. Define the start and goal locations.
-4. Perform a search using A* or other search algorithm.
-5. Use a collinearity test or ray tracing method (like Bresenham) to remove unnecessary waypoints.
-6. Return waypoints in local ECEF coordinates (format for `self.all_waypoints` is [N, E, altitude, heading], where the drone’s start location corresponds to [0, 0, 0, 0].
-7. Write it up.
-8. Congratulations!  Your Done!
+###### Finite State Machine Design
+The basic functions (transition and callback fonction) present in the finite State Machine (asynchronous graph) are in the picture below :
+<p align="center">
+<img src="./Design/Finite_State_Machine.png" width="80% style = "border:none;">
+</p> 
 
-## [Rubric](https://review.udacity.com/#!/rubrics/1534/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+The state named "PLANNING" has been added between the state "ARMING" and "TAKEOFF".
 
----
-### Writeup / README
+##### Plan_path (implemented in the main class)
+The SW Pipeline of the state "PLANNING" with his function Plan_Path is here documented :
 
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  
+1- Load the 2.5D Map
+2- Environment discretization
+3- Start and Goal localization
+4- A* Search algorithm
+5- Collinearity test to remove unnecessary waypoints
+6- Convert Path to waypoints
 
-You're reading it! Below I describe how I addressed each rubric point and where in my code each point is handled.
-
-### Explain the Starter Code
-
-#### 1. Explain the functionality of what's provided in `motion_planning.py` and `planning_utils.py`
-These scripts contain a basic planning implementation that includes...
-
-And here's a lovely image of my results (ok this image has nothing to do with it, but it's a nice example of how to include images in your writeup!)
-![Top Down View](./misc/high_up.png)
-
-Here's | A | Snappy | Table
---- | --- | --- | ---
-1 | `highlight` | **bold** | 7.41
-2 | a | b | c
-3 | *italic* | text | 403
-4 | 2 | 3 | abcd
-
-### Implementing Your Path Planning Algorithm
-
-#### 1. Set your global home position
-Here students should read the first line of the csv file, extract lat0 and lon0 as floating point values and use the self.set_home_position() method to set global home. Explain briefly how you accomplished this in your code.
+<p align="center">
+<img src="./Design/Path_Plan.png" width="80% style = "border:none;">
+</p> 
 
 
-And here is a lovely picture of our downtown San Francisco environment from above!
-![Map of SF](./misc/map.png)
+--------------------------------
+### Part 2.2 : Results
 
-#### 2. Set your current local position
-Here as long as you successfully determine your local position relative to global home you'll be all set. Explain briefly how you accomplished this in your code.
+The results are presented here :
 
-
-Meanwhile, here's a picture of me flying through the trees!
-![Forest Flying](./misc/in_the_trees.png)
-
-#### 3. Set grid start position from local position
-This is another step in adding flexibility to the start location. As long as it works you're good to go!
-
-#### 4. Set grid goal position from geodetic coords
-This step is to add flexibility to the desired goal location. Should be able to choose any (lat, lon) within the map and have it rendered to a goal location on the grid.
-
-#### 5. Modify A* to include diagonal motion (or replace A* altogether)
-Minimal requirement here is to modify the code in planning_utils() to update the A* implementation to include diagonal motions on the grid that have a cost of sqrt(2), but more creative solutions are welcome. Explain the code you used to accomplish this step.
-
-#### 6. Cull waypoints 
-For this step you can use a collinearity test or ray tracing method like Bresenham. The idea is simply to prune your path of unnecessary waypoints. Explain the code you used to accomplish this step.
+#### Path before the pruned step
+<p align="center">
+<img src="./Results/Path.png" width="80% style = "border:none;">
+</p> 
 
 
-
-### Execute the flight
-#### 1. Does it work?
-It works!
-
-### Double check that you've met specifications for each of the [rubric](https://review.udacity.com/#!/rubrics/1534/view) points.
-  
-# Extra Challenges: Real World Planning
-
-For an extra challenge, consider implementing some of the techniques described in the "Real World Planning" lesson. You could try implementing a vehicle model to take dynamic constraints into account, or implement a replanning method to invoke if you get off course or encounter unexpected obstacles.
+#### Path after the pruned step
+<p align="center">
+<img src="./Results/Prunned_Path.png" width="80% style = "border:none;">
+</p> 
 
 
+#### Diagnostic information 
+The diagnostic informations are :
+	1- the local start and goal + the north and the east offset
+	2- the cost for the path,
+	3- the lenght of the path and the lenght of the prunned path,
+	4- the time to provide the path,
+	5- waypoints coordinate with the format [N, E, altitude, heading]
+	
+<p align="center">
+<img src="./Results/Diagnostic_Information.png" width="80% style = "border:none;">
+</p> 
