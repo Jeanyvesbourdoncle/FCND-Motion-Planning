@@ -80,7 +80,7 @@ These two classes are already implemented in the last project FCND-Backyard-Flye
 
 
 ###### Finite State Machine Design
-The basic functions (transition and callback fonction) present in the finite State Machine (asynchronous graph) are in the picture below :
+The basic functions (transition and callback fonction) present in the finite State Machine (asynchronous graph) are in the picture below:
 <p align="center">
 <img src="./Design/Finite_State_Machine.png" width="100% style = "border:none;">
 </p> 
@@ -107,19 +107,19 @@ The SW Pipeline of the state "PLANNING" with his function Plan_Path is here docu
 
 The results are presented here :
 
-#### Path before the pruned step
+#### Path before the pruned step :
 <p align="center">
 <img src="./Results/Path.png" width="80% style = "border:none;">
 </p> 
 
 
-#### Path after the pruned step
+#### Path after the pruned step :
 <p align="center">
 <img src="./Results/Prunned_Path.png" width="80% style = "border:none;">
 </p> 
 
 
-#### Diagnostic information 
+#### Diagnostic information :
 The diagnostic informations are :
 	1- the local start and goal + the north and the east offset
 	2- the cost for the path,
