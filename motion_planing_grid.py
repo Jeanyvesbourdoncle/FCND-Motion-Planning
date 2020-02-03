@@ -162,7 +162,7 @@ class MotionPlanning(Drone):
        
         grid_goal = (int(grid_start[0] + north_offset_random), int(grid_start[1] + east_offset_random))
         
-		#Safety Test : Default Case --> Landing Transition
+	#Safety Test : Default Case --> Landing Transition
         #Safety test : verify if the start and the goal are the same
         if ((grid_start[0] == grid_goal[0]) & (grid_start[1] == grid_goal[1])):
             print ("The goal coordinates are the same as the start coordinates")
